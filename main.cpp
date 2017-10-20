@@ -1,12 +1,30 @@
 #include <iostream>
-#include "Cell.h"
+#include <ctime>
+#include <cstdlib>
+#include <pthread.h>
+
+void* computePath(void* args);
 
 int terrain[512][128];
-int compteur=0;
-int main() {
-    std::cout << "Hello, World!" << std::endl;
+int compteur = 0;
+int nbThread = 15;
+	
 
-    //generation de threads
+int main() {
+	
+	pthread_t tabT[nbThread];
+	int idT[nbThread];
+	long posT[nbThread];
+	
+	for(int i = 0 ; i < 15 ; i++){
+		
+		long  x = rand() % (512 * 128);
+		while( terrain[x % 512][x / 512]) x = rand() % (512 * 128);
+		posT[i] = x;
+		
+		idT[i] = pthread_create(&tabT[i], NULL, computePath,(void*)posT[i]);
+	}
+    
 
     while(compteur>0){
     }
@@ -14,18 +32,10 @@ int main() {
 
 }
 
-void changeTerrain(int x, int y, int xDest, int yDest) {
-    terrain[x][y] = 0;
-    terrain[xDest][yDest] = 1;
-}
 
-void computePath() {
-    int x = 200;
-    int y = 100;
-    while (true) {
-        //lock
-        //calcul de
-        //unlock
-    }
+void* computePath(void* args) {
+	long x = ((long)args) % 512 ;
+	long y = ((long)args) / 512 ;
+
 }
 
