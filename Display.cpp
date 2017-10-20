@@ -69,9 +69,10 @@ void display(int max_x, int max_y, int &counter, int terrain[]) {
     SDL_Quit();
 }
 
-template<size_t size_x, size_t size_y>
-void lol(int (&terrain)[size_x][size_y]) {
-    printf("loiloool");
+void displayRefresh() {
+    timespec t = {0, 10000000L};
+    nanosleep(&t, nullptr);
+
 }
 
 

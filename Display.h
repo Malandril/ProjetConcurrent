@@ -7,6 +7,6 @@
 
 void display(int max_x, int max_y, int &counter, int terrain[]);
 
-void lol(int (*terrain)[2]);
+void displayRefresh();
 
 #endif //PROJETCONCURRENT_DISPLAYSDL_H

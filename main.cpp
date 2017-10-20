@@ -74,15 +74,14 @@ void *computePath(void *args) {
     int x1 = x;
     int y = ((long) args) / MAX_X;
     int y1 = y1;
-    timespec t = {0, 10000000L};
-//    nanosleep(&t, nullptr);
+
     int count = 0;
     while (x > 0 || y > 0) {
         pthread_mutex_lock(&arrayMutex); //locking array
         bestCell(x, y);
         pthread_mutex_unlock(&arrayMutex); //unlocking array
         count++;
-        nanosleep(&t, nullptr);
+        displayRefresh();
     }
     pthread_mutex_lock(&arrayMutex);
     terrain[x][y] = 0;

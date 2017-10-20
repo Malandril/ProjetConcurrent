@@ -28,3 +28,5 @@ void display(int max_x, int max_y, int &counter, int terrain[]) {
         nanosleep(&t, NULL);
     }
 }
+
+void displayRefresh(){}
