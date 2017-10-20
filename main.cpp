@@ -1,19 +1,22 @@
 #include <iostream>
 #include <pthread.h>
 #include <math.h>
-
 #include "Cell.h"
+#include "Display.h"
 
-static const int MAX_X = 30;
-static const int MAX_Y = 12;
+static const int MAX_X = 512;
+static const int MAX_Y = 128;
 static const int DEST_X = -1;
 static const int DEST_Y = -1;
 
 int terrain[MAX_X][MAX_Y];
 
-int nbThread = 20;
+int nbThread = 512;
+int counter = nbThread;
 
 pthread_mutex_t arrayMutex = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_mutex_t testC = PTHREAD_MUTEX_INITIALIZER;
 
 bool isValidCell(int x, int y);
 
@@ -22,6 +25,7 @@ double distance(int x, int y, int xDest, int yDest);
 void *computePath(void *pVoid);
 
 void bestCell(int &x, int &y);
+
 
 void printTerrain() {
     for (int i = 0; i < MAX_Y; ++i) {
@@ -35,6 +39,8 @@ void printTerrain() {
 }
 
 int main() {
+    clock_t start = clock();
+
     for (int i = 0; i < MAX_Y; ++i) {
         for (int j = 0; j < MAX_X; ++j) {
             terrain[j][i] = 0;
@@ -43,35 +49,47 @@ int main() {
     pthread_t tabT[nbThread];
     int idT[nbThread];
     long posT[nbThread];
-
+    srand(2501);
     for (int i = 0; i < nbThread; i++) {
 
         long x = rand() % (MAX_X * MAX_Y);
-        while (terrain[x % MAX_X][x / MAX_X]) x = rand() % (MAX_X * MAX_Y);
+        while (terrain[x % MAX_X][x / MAX_X] || x == 0) x = rand() % (MAX_X * MAX_Y);
         posT[i] = x;
 
         idT[i] = pthread_create(&tabT[i], nullptr, computePath, (void *) posT[i]);
     }
-    for (int k = 0; k < nbThread; ++k) {
-        pthread_join(tabT[k], nullptr);
-    }
+    display(MAX_X, MAX_Y, counter, (int *) (terrain));
+
+
+    time_t end;
+    time(&end);
+    std::cout << "AAAAAAA " << (clock() - start) * 1000.0 / CLOCKS_PER_SEC << std::endl;
     return 0;
 
 }
 
+
 void *computePath(void *args) {
     int x = ((long) args) % MAX_X;
+    int x1 = x;
     int y = ((long) args) / MAX_X;
-
+    int y1 = y1;
+    timespec t = {0, 10000000L};
+//    nanosleep(&t, nullptr);
+    int count = 0;
     while (x > 0 || y > 0) {
         pthread_mutex_lock(&arrayMutex); //locking array
         bestCell(x, y);
-        std::cout<<x<<" "<<y<<std::endl;
         pthread_mutex_unlock(&arrayMutex); //unlocking array
+        count++;
+        nanosleep(&t, nullptr);
     }
     pthread_mutex_lock(&arrayMutex);
-    terrain[x][y]=0;
+    terrain[x][y] = 0;
     pthread_mutex_unlock(&arrayMutex);
+    pthread_mutex_lock(&testC);
+    counter--;
+    pthread_mutex_unlock(&testC);
 }
 
 void bestCell(int &x, int &y) {
