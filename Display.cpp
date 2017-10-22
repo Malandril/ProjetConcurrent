@@ -7,7 +7,6 @@
 #include "Display.h"
 
 void display(int max_x, int max_y, int &counter, int terrain[]) {
-    std::cout << terrain[0];
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stdout, "Échec de l'initialisation de la SDL (%s)\n", SDL_GetError());
         return;
@@ -31,9 +30,7 @@ void display(int max_x, int max_y, int &counter, int terrain[]) {
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
                 SDL_RenderClear(renderer);
                 SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
-                SDL_RenderDrawLine(renderer, 0, 0, static_cast<int>(max_x * xp), static_cast<int>(max_y * yp));
                 SDL_SetRenderDrawColor(renderer, 255, 0, 255, SDL_ALPHA_OPAQUE);
-                SDL_RenderDrawLine(renderer, 0, 0, max_x, max_y);
                 SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
                 for (int x = 0; x < max_x; ++x) {
                     for (int y = 0; y < max_y; ++y) {
@@ -69,10 +66,9 @@ void display(int max_x, int max_y, int &counter, int terrain[]) {
     SDL_Quit();
 }
 
-void displayRefresh() {
+void displayWaitRefresh() {
     timespec t = {0, 10000000L};
     nanosleep(&t, nullptr);
-
 }
 
 

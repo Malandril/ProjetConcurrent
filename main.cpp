@@ -21,6 +21,7 @@ static const int SEED = 2501;
 int terrain[MAX_X][MAX_Y];
 int nbThread = 1;
 int counter = nbThread;
+bool metric = false;
 
 pthread_mutex_t arrayMutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -40,18 +41,18 @@ void createAndWaitThreads(pthread_t *tabT, int *idT, const long *posT);
 
 int maxTime(const long timeArray[], int k);
 
-int minTime(const long timeArray[],int k);
+int minTime(const long timeArray[], int k);
 
 double averageTime(const long timeArray[], int k);
 
 int main(int argc, char *argv[]) {
-    bool metric = false;
     int opt;
     while ((opt = getopt(argc, argv, "p::t::m")) != -1) { //parses arguments and selects relevent ones
         switch (opt) {
             case 'p':
                 if (optarg != nullptr) {
                     nbThread = static_cast<int>(pow(2, atoi(optarg)));
+                    counter = nbThread;
                 }
                 break;
             case 't':
@@ -87,6 +88,7 @@ int main(int argc, char *argv[]) {
     srand(SEED); //allows the persons to always have the same position
     initPersonPos(posT);
     if (metric) {
+        cout << "Running program 5 times" << endl;
         long responseTime[REPEAT];
         long userTime[REPEAT];
         long systemTime[REPEAT];
@@ -104,7 +106,8 @@ int main(int argc, char *argv[]) {
         double user = averageTime(userTime, REPEAT);
         double system = averageTime(systemTime, REPEAT);
         std::cout << "Temps de réponse moyen: " << response << " ms" << std::endl;
-        std::cout << "Temps CPU espace utilisateur moyen: " << user/1000.0 << " ms temps système moyen: " << system/1000.0 << " ms" << std::endl;
+        std::cout << "Temps CPU espace utilisateur moyen: " << user / 1000.0 << " ms temps système moyen: "
+                  << system / 1000.0 << " ms" << std::endl;
     } else {
         createAndWaitThreads(tabT, idT, posT);
     }
@@ -152,9 +155,13 @@ void createAndWaitThreads(pthread_t *tabT, int *idT, const long *posT) {
     for (int j = 0; j < nbThread; ++j) {
         idT[j] = pthread_create(&tabT[j], nullptr, computePath, (void *) posT[j]);
     }
-    for (int k = 0; k < nbThread; ++k) {
-        pthread_join(tabT[k], nullptr);
-    }
+    if (metric) {
+        for (int k = 0; k < nbThread; ++k) {
+            pthread_join(tabT[k], nullptr);
+        }
+    } else {
+        display(MAX_X, MAX_Y, counter, (int *) terrain);
+    };
 }
 
 void initPersonPos(long *posT) {
@@ -164,14 +171,6 @@ void initPersonPos(long *posT) {
         terrain[x % MAX_X][x / MAX_X] = 1;
         posT[i] = x;
     }
-    display(MAX_X, MAX_Y, counter, (int *) (terrain));
-
-
-    time_t end;
-    time(&end);
-    std::cout << "AAAAAAA " << (clock() - start) * 1000.0 / CLOCKS_PER_SEC << std::endl;
-    return 0;
-
 }
 
 void *computePath(void *args) {
@@ -181,15 +180,18 @@ void *computePath(void *args) {
         pthread_mutex_lock(&arrayMutex); //locking array
         bestCell(x, y);
         pthread_mutex_unlock(&arrayMutex); //unlocking array
-        count++;
-        displayRefresh();
+        if (!metric) {
+            displayWaitRefresh();
+        }
     }
     pthread_mutex_lock(&arrayMutex);
     terrain[x][y] = 0;
     pthread_mutex_unlock(&arrayMutex);
-    pthread_mutex_lock(&testC);
-    counter--;
-    pthread_mutex_unlock(&testC);
+    if (!metric) {
+        pthread_mutex_lock(&testC);
+        counter--;
+        pthread_mutex_unlock(&testC);
+    }
 }
 
 void bestCell(int &x, int &y) {
