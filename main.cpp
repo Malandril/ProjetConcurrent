@@ -3,7 +3,8 @@
 #include <cmath>
 #include <unistd.h>
 #include <chrono>
-#include <sys/resource.h>
+
+
 #include "Cell.h"
 #include "Display.h"
 
@@ -22,6 +23,30 @@ int terrain[MAX_X][MAX_Y];
 int nbThread = 1;
 int counter = nbThread;
 bool metric = false;
+
+
+void setMetrics(long userTime[], long systemTime[], int i);
+
+
+#if defined(__linux__) || defined(__APPLE__)
+
+#include <sys/resource.h>
+
+void setMetrics(long userTime[], long systemTime[], int i) {
+    rusage usage = {};
+    getrusage(RUSAGE_SELF, &usage);
+    userTime[i] = usage.ru_utime.tv_usec;
+    systemTime[i] = usage.ru_stime.tv_usec;
+}
+
+
+#elif defined(_WIN32)
+
+void setMetrics(long userTime[], long systemTime[], int i) {
+    std::cerr<<"Metrics not Working in windows";
+}
+
+#endif
 
 pthread_mutex_t arrayMutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -46,6 +71,7 @@ int minTime(const long timeArray[], int k);
 double averageTime(const long timeArray[], int k);
 
 int main(int argc, char *argv[]) {
+
     int opt;
     while ((opt = getopt(argc, argv, "p::t::m")) != -1) { //parses arguments and selects relevent ones
         switch (opt) {
@@ -96,11 +122,8 @@ int main(int argc, char *argv[]) {
             start = std::chrono::high_resolution_clock::now();
             createAndWaitThreads(tabT, idT, posT);
             auto end = high_resolution_clock::now();
-            rusage usage = {};
-            getrusage(RUSAGE_SELF, &usage);
-            userTime[i] = usage.ru_utime.tv_usec;
-            systemTime[i] = usage.ru_stime.tv_usec;
             responseTime[i] = std::chrono::duration_cast<milliseconds>(end - start).count();
+            setMetrics(userTime, systemTime, i);
         }
         double response = averageTime(responseTime, REPEAT);
         double user = averageTime(userTime, REPEAT);
