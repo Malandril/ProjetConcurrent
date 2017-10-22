@@ -1,11 +1,9 @@
 #include <iostream>
-#include <pthread.h>
 #include <cmath>
 #include <unistd.h>
 #include <chrono>
 
 
-#include "Cell.h"
 #include "Display.h"
 
 using std::cout;
@@ -38,12 +36,17 @@ void setMetrics(long userTime[], long systemTime[], int i) {
     userTime[i] = usage.ru_utime.tv_usec;
     systemTime[i] = usage.ru_stime.tv_usec;
 }
-
-
 #elif defined(_WIN32)
 
 void setMetrics(long userTime[], long systemTime[], int i) {
     std::cerr << "Metrics not Working in windows";
+}
+
+#else
+
+void setMetrics(long userTime[], long systemTime[], int i) {
+    std::cerr << "Error Unknown system os ";
+    exit(-1);
 }
 
 #endif
