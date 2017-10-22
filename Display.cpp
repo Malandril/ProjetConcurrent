@@ -70,6 +70,9 @@ void displayWaitRefresh() {
     timespec t = {0, 10000000L};
     nanosleep(&t, nullptr);
 }
+bool hasTrueDisplay() {
+    return true;
+}
 
 
 

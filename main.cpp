@@ -43,7 +43,7 @@ void setMetrics(long userTime[], long systemTime[], int i) {
 #elif defined(_WIN32)
 
 void setMetrics(long userTime[], long systemTime[], int i) {
-    std::cerr<<"Metrics not Working in windows";
+    std::cerr << "Metrics not Working in windows";
 }
 
 #endif
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
             start = std::chrono::high_resolution_clock::now();
             createAndWaitThreads(tabT, idT, posT);
             auto end = high_resolution_clock::now();
-            responseTime[i] = std::chrono::duration_cast<milliseconds>(end - start).count();
+            responseTime[i] = static_cast<long>(std::chrono::duration_cast<milliseconds>(end - start).count());
             setMetrics(userTime, systemTime, i);
         }
         double response = averageTime(responseTime, REPEAT);
@@ -178,7 +178,7 @@ void createAndWaitThreads(pthread_t *tabT, int *idT, const long *posT) {
     for (int j = 0; j < nbThread; ++j) {
         idT[j] = pthread_create(&tabT[j], nullptr, computePath, (void *) posT[j]);
     }
-    if (metric) {
+    if (metric || !hasTrueDisplay()) {
         for (int k = 0; k < nbThread; ++k) {
             pthread_join(tabT[k], nullptr);
         }
@@ -203,7 +203,7 @@ void *computePath(void *args) {
         pthread_mutex_lock(&arrayMutex); //locking array
         bestCell(x, y);
         pthread_mutex_unlock(&arrayMutex); //unlocking array
-        if (!metric) {
+        if (!metric && hasTrueDisplay()) {
             displayWaitRefresh();
         }
     }
