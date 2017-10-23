@@ -73,6 +73,8 @@ int minTime(const long timeArray[], int k);
 
 double averageTime(const long timeArray[], int k);
 
+void createObstacle(int x, int y, int width, int height) ;
+
 int main(int argc, char *argv[]) {
 
     int opt;
@@ -115,6 +117,10 @@ int main(int argc, char *argv[]) {
     long posT[nbThread];
     high_resolution_clock::time_point start;
     srand(SEED); //allows the persons to always have the same position
+    createObstacle(50,50,20,50);
+    createObstacle(100,10,30,80);
+//    createObstacle(50,50,20,50);
+//    createObstacle(50,50,200,50);
     initPersonPos(posT);
     if (metric) {
         cout << "Running program 5 times" << endl;
@@ -139,6 +145,14 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 
+}
+
+void createObstacle(int x, int y, int width, int height) {
+    for (int i = x; i < width; ++i) {
+        for (int j = y; j < height; ++j) {
+            terrain[i][j] = 8;
+        }
+    }
 }
 
 double averageTime(const long timeArray[], int k) {

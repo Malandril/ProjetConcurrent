@@ -29,12 +29,14 @@ void display(int max_x, int max_y, int &counter, int terrain[]) {
 
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
                 SDL_RenderClear(renderer);
-                SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
-                SDL_SetRenderDrawColor(renderer, 255, 0, 255, SDL_ALPHA_OPAQUE);
-                SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
                 for (int x = 0; x < max_x; ++x) {
                     for (int y = 0; y < max_y; ++y) {
-                        if (terrain[x * max_y + y] == 1) {
+                        if (terrain[x * max_y + y] == 1 || terrain[x * max_y + y] == 8) {
+                            if (terrain[x * max_y + y] == 8) {
+                                SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
+                            } else {
+                                SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+                            }
                             SDL_Rect rect = {static_cast<int>(xp * x), static_cast<int>(yp * y), static_cast<int>(xp),
                                              static_cast<int>(yp)};
                             SDL_RenderFillRect(renderer, &rect);
@@ -70,6 +72,7 @@ void displayWaitRefresh() {
     timespec t = {0, 10000000L};
     nanosleep(&t, nullptr);
 }
+
 bool hasTrueDisplay() {
     return true;
 }
