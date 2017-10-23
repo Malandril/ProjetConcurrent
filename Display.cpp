@@ -16,12 +16,11 @@ void display(int max_x, int max_y, int &counter, int terrain[]) {
         /* Création de la fenêtre */
         SDL_Window *window = nullptr;
         SDL_Renderer *renderer = nullptr;
-        SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_RESIZABLE, &window, &renderer);
+        int w = 1024;
+        int h = 256;
+        SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
         bool done = false;
-        int w;
-        int h;
-        SDL_GetWindowSize(window, &w, &h);
-        double xp = std::min(((double) w) / max_x, ((double) h) / max_y);
+        double xp = 2;
         double yp = xp;
         if (window) {
             while (!done) {
@@ -50,12 +49,26 @@ void display(int max_x, int max_y, int &counter, int terrain[]) {
                 while (SDL_PollEvent(&event)) {
                     if (event.type == SDL_QUIT) {
                         done = SDL_TRUE;
-                    } else if (event.type == SDL_WINDOWEVENT) {
-                        if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                            SDL_GetWindowSize(window, &w, &h);
-                            double xp = std::min(((double) w) / max_x, ((double) h) / max_y);
-                            double yp = xp;
+                    }
+                    if (event.type == SDL_KEYDOWN) {
+                        switch (event.key.keysym.sym) {
+                            case SDLK_KP_PLUS:
+                                w *= 2;
+                                h *= 2;
+                                SDL_SetWindowSize(window, w, h);
+                                xp *= 2;
+                                yp *= 2;
+                                break;
+                            case SDLK_KP_MINUS:
+                                w /= 2;
+                                h /= 2;
+                                SDL_SetWindowSize(window, w, h);
+                                xp /= 2;
+                                yp /= 2;
+                                break;
+
                         }
+
                     }
 
                 }

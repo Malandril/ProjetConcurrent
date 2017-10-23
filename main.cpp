@@ -36,6 +36,7 @@ void setMetrics(long userTime[], long systemTime[], int i) {
     userTime[i] = usage.ru_utime.tv_usec;
     systemTime[i] = usage.ru_stime.tv_usec;
 }
+
 #elif defined(_WIN32)
 
 void setMetrics(long userTime[], long systemTime[], int i) {
@@ -73,7 +74,9 @@ int minTime(const long timeArray[], int k);
 
 double averageTime(const long timeArray[], int k);
 
-void createObstacle(int x, int y, int width, int height) ;
+void createObstacle(int x, int y, int width, int height);
+
+void spawnObstacle();
 
 int main(int argc, char *argv[]) {
 
@@ -116,11 +119,18 @@ int main(int argc, char *argv[]) {
     int idT[nbThread];
     long posT[nbThread];
     high_resolution_clock::time_point start;
+//    createObstacle(50, 50, 20, 50);
+//    createObstacle(100, 10, 30, 80);
+//    createObstacle(250, 30, 10, 80);
+//    createObstacle(270, 5, 20, 70);
+
     srand(SEED); //allows the persons to always have the same position
-    createObstacle(50,50,20,50);
-    createObstacle(100,10,30,80);
-//    createObstacle(50,50,20,50);
-//    createObstacle(50,50,200,50);
+    for (int k = 0; k < 6; ++k) {
+        spawnObstacle();
+    }
+
+    srand(SEED); //allows the persons to always have the same position
+
     initPersonPos(posT);
     if (metric) {
         cout << "Running program 5 times" << endl;
@@ -147,9 +157,25 @@ int main(int argc, char *argv[]) {
 
 }
 
+void spawnObstacle() {
+    int ox = 2 + rand() % (MAX_X - 80);
+    int oy = 2 + rand() % (MAX_Y - 80);
+    int ow = 2 + rand() % (MAX_X - ox);
+    int oh = 2 + rand() % (MAX_Y - oy);
+    for (int i = ox - 2; i < ox + ow + 2; ++i) {
+        for (int j = oy - 2; j < oy + oh + 2; ++j) {
+            if (terrain[i][j] == 8) {
+                spawnObstacle();
+                return;
+            }
+        }
+    }
+    createObstacle(ox, oy, ow, oh);
+}
+
 void createObstacle(int x, int y, int width, int height) {
-    for (int i = x; i < width; ++i) {
-        for (int j = y; j < height; ++j) {
+    for (int i = x; i < x + width; ++i) {
+        for (int j = y; j < y + height; ++j) {
             terrain[i][j] = 8;
         }
     }
