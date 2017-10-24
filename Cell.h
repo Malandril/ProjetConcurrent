@@ -6,21 +6,26 @@
 #define PROJETCONCURRENT_PERSON_H
 
 
+#include <pthread.h>
+
 class Cell {
 private:
     int value;
+
+    pthread_mutex_t writeMutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t cellMute = PTHREAD_MUTEX_INITIALIZER;
+
+    void changeValue(int value);
+
 public:
+
+    explicit Cell(int value=0);
 
     void moveIn();
 
     void moveOut();
 
     void move();
-
-    int x;
-    int y;
-
-    Cell(int x, int y);
 
     int readValue();
 

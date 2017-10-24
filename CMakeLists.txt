@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_CXX_STANDARD 11)
 project(DisplayLib)
 option(Graphic "enables graphic display using sdl2" OFF)
 if (Graphic)

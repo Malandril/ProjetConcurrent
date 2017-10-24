@@ -1,7 +1,7 @@
 //
 // Created by user on 20/10/17.
 //
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <iostream>
 
 #include "Display.h"

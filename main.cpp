@@ -5,6 +5,7 @@
 
 
 #include "Display.h"
+#include "Cell.h"
 
 using std::cout;
 using std::endl;
@@ -17,14 +18,14 @@ static const int DEST_X = -1;
 static const int DEST_Y = -1;
 static const int REPEAT = 5;
 static const int SEED = 2501;
-int terrain[MAX_X][MAX_Y];
+static const int OBSTACLE = 8;
+Cell terrain[MAX_X][MAX_Y];
 int nbThread = 1;
 int counter = nbThread;
 bool metric = false;
 
 
 void setMetrics(long userTime[], long systemTime[], int i);
-
 
 #if defined(__linux__) || defined(__APPLE__)
 
@@ -111,7 +112,7 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < MAX_Y; ++i) {
         for (int j = 0; j < MAX_X; ++j) {
-            terrain[j][i] = 0;
+            terrain[j][i] = Cell();
         }
     }
 
@@ -164,7 +165,7 @@ void spawnObstacle() {
     int oh = 2 + rand() % (MAX_Y - oy);
     for (int i = ox - 2; i < ox + ow + 2; ++i) {
         for (int j = oy - 2; j < oy + oh + 2; ++j) {
-            if (terrain[i][j] == 8) {
+            if (terrain[i][j].readValue() == OBSTACLE) {
                 spawnObstacle();
                 return;
             }
@@ -176,7 +177,7 @@ void spawnObstacle() {
 void createObstacle(int x, int y, int width, int height) {
     for (int i = x; i < x + width; ++i) {
         for (int j = y; j < y + height; ++j) {
-            terrain[i][j] = 8;
+            terrain[i][j] = Cell(OBSTACLE);
         }
     }
 }
@@ -233,8 +234,8 @@ void createAndWaitThreads(pthread_t *tabT, int *idT, const long *posT) {
 void initPersonPos(long *posT) {
     for (int i = 0; i < nbThread; i++) {
         long x = rand() % (MAX_X * MAX_Y);
-        while (terrain[x % MAX_X][x / MAX_X] || x == 0) x = rand() % (MAX_X * MAX_Y);
-        terrain[x % MAX_X][x / MAX_X] = 1;
+        while (terrain[x % MAX_X][x / MAX_X].readValue() || x == 0) x = rand() % (MAX_X * MAX_Y);
+        terrain[x % MAX_X][x / MAX_X] = Cell(1);
         posT[i] = x;
     }
 }
@@ -251,7 +252,7 @@ void *computePath(void *args) {
         }
     }
     pthread_mutex_lock(&arrayMutex);
-    terrain[x][y] = 0;
+    terrain[x][y].moveOut();
     pthread_mutex_unlock(&arrayMutex);
     if (!metric) {
         pthread_mutex_lock(&testC);
@@ -274,15 +275,14 @@ void bestCell(int &x, int &y) {
         }
     }
     if (tmpx >= 0 && tmpy >= 0) {
-        terrain[x][y] = 0;
-        terrain[tmpx][tmpy] = 1;
+        terrain[x][y].move();
         x = tmpx;
         y = tmpy;
     }
 }
 
 bool isValidCell(int x, int y) {
-    return (x >= 0 && x < MAX_X && y >= 0 && y < MAX_Y) && (terrain[x][y] == 0);
+    return (x >= 0 && x < MAX_X && y >= 0 && y < MAX_Y) && (terrain[x][y].readValue() == 0);
 }
 
 double distance(int x, int y, int xDest, int yDest) {
@@ -292,7 +292,7 @@ double distance(int x, int y, int xDest, int yDest) {
 void printTerrain() {
     for (int i = 0; i < MAX_Y; ++i) {
         for (int j = 0; j < MAX_X; ++j) {
-            std::cout << terrain[j][i];
+            std::cout << terrain[j][i].readValue();
         }
         std::cout << "\n";
     }
