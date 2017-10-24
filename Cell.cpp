@@ -40,3 +40,8 @@ void Cell::changeValue(int value) {
     this->value = value;
 
 }
+
+std::ostream &operator<<(std::ostream &os, const Cell &cell) {
+    os << "value: " << cell.value;
+    return os;
+}

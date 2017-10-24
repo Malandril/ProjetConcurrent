@@ -7,6 +7,7 @@
 
 
 #include <pthread.h>
+#include <ostream>
 
 class Cell {
 private:
@@ -28,6 +29,8 @@ public:
     void move();
 
     int readValue();
+
+    friend std::ostream &operator<<(std::ostream &os, const Cell &cell);
 
 
 };

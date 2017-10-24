@@ -6,12 +6,11 @@
 
 #include "Display.h"
 
-void display(int max_x, int max_y, int &counter, int terrain[]) {
+void display(int max_x, int max_y, int &counter, Cell terrain[]) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stdout, "Échec de l'initialisation de la SDL (%s)\n", SDL_GetError());
         return;
     }
-
     {
         /* Création de la fenêtre */
         SDL_Window *window = nullptr;
@@ -25,13 +24,13 @@ void display(int max_x, int max_y, int &counter, int terrain[]) {
         if (window) {
             while (!done) {
                 SDL_Event event;
-
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
                 SDL_RenderClear(renderer);
                 for (int x = 0; x < max_x; ++x) {
                     for (int y = 0; y < max_y; ++y) {
-                        if (terrain[x * max_y + y] == 1 || terrain[x * max_y + y] == 8) {
-                            if (terrain[x * max_y + y] == 8) {
+                        int value = terrain[x * max_y + y].readValue();
+                        if (value == 1 || value == 8) {
+                            if (value == 8) {
                                 SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
                             } else {
                                 SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);

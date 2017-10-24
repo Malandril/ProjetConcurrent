@@ -5,7 +5,6 @@
 
 
 #include "Display.h"
-#include "Cell.h"
 
 using std::cout;
 using std::endl;
@@ -18,7 +17,7 @@ static const int DEST_X = -1;
 static const int DEST_Y = -1;
 static const int REPEAT = 5;
 static const int SEED = 2501;
-static const int OBSTACLE = 8;
+static const int OBSTACLE = 7;
 Cell terrain[MAX_X][MAX_Y];
 int nbThread = 1;
 int counter = nbThread;
@@ -79,6 +78,8 @@ void createObstacle(int x, int y, int width, int height);
 
 void spawnObstacle();
 
+void printTerrain();
+
 int main(int argc, char *argv[]) {
 
     int opt;
@@ -120,7 +121,7 @@ int main(int argc, char *argv[]) {
     int idT[nbThread];
     long posT[nbThread];
     high_resolution_clock::time_point start;
-//    createObstacle(50, 50, 20, 50);
+    createObstacle(10, 10, 10, 30);
 //    createObstacle(100, 10, 30, 80);
 //    createObstacle(250, 30, 10, 80);
 //    createObstacle(270, 5, 20, 70);
@@ -129,7 +130,7 @@ int main(int argc, char *argv[]) {
     for (int k = 0; k < 6; ++k) {
         spawnObstacle();
     }
-
+    printTerrain();
     srand(SEED); //allows the persons to always have the same position
 
     initPersonPos(posT);
@@ -227,7 +228,7 @@ void createAndWaitThreads(pthread_t *tabT, int *idT, const long *posT) {
             pthread_join(tabT[k], nullptr);
         }
     } else {
-        display(MAX_X, MAX_Y, counter, (int *) terrain);
+        display(MAX_X, MAX_Y, counter, (Cell *) terrain);
     };
 }
 
