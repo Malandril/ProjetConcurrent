@@ -4,5 +4,10 @@
 
 #ifndef PROJETCONCURRENT_MAIN_H
 #define PROJETCONCURRENT_MAIN_H
-extern int lol;
+
+#include <semaphore.h>
+
+#define OBSTACLE 7
+#define MAX_X 512
+#define MAX_Y 128
 #endif //PROJETCONCURRENT_MAIN_H

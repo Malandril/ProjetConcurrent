@@ -7,41 +7,47 @@
 Cell::Cell(int value) : value(value) {}
 
 void Cell::moveIn() {
-    //lock ecriture
-    pthread_mutex_lock(&writeMutex);
+    pthread_mutex_lock(&cellMutex);
     changeValue(1);
-    pthread_mutex_unlock(&writeMutex);
 
 
 }
 
 void Cell::moveOut() {
-    // lock eciture
-    pthread_mutex_lock(&writeMutex);
     changeValue(0);
-    pthread_mutex_unlock(&writeMutex);
+    pthread_mutex_unlock(&cellMutex);
 
 }
 
 int Cell::readValue() {
+
+    pthread_mutex_lock(&readMutex);
+    readerCount++;
+    if (readerCount == 1) {
+        pthread_mutex_lock(&writeMutex);
+    }
+    pthread_mutex_unlock(&readMutex);
+
+    int value = this->value;
+
+    pthread_mutex_lock(&readMutex);
+    readerCount--;
+    if (readerCount == 0) {
+        pthread_mutex_unlock(&writeMutex);
+    }
+    pthread_mutex_unlock(&readMutex);
     return value;
 }
 
-void Cell::move() {
-    //lock emplacement permet de ne pas avoir de personne qui rentrent après avoir lu une valeur
-    pthread_mutex_lock(&cellMute);
-    moveIn();
+void Cell::move(Cell &cell) {
     moveOut();
-    pthread_mutex_unlock(&cellMute);
-    //unlock emplacement
+    cell.moveIn();
 }
 
 void Cell::changeValue(int value) {
+    pthread_mutex_lock(&writeMutex);//lock ecriture
     this->value = value;
+    pthread_mutex_unlock(&writeMutex);
 
-}
 
-std::ostream &operator<<(std::ostream &os, const Cell &cell) {
-    os << "value: " << cell.value;
-    return os;
 }

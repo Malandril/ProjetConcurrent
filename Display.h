@@ -6,10 +6,21 @@
 
 #ifndef PROJETCONCURRENT_DISPLAYSDL_H
 #define PROJETCONCURRENT_DISPLAYSDL_H
-bool hasTrueDisplay();
+/**
+ * vrai si compilé avec la partie graphique
+ */
+extern bool canDisplay;
 
-void display(int max_x, int max_y, int &counter, Cell terrain[]);
+/**
+ * Affiche le terrain si compilé avec la partie graphique
+ * @param counter
+ * @param terrain
+ */
+void display(int &counter, Cell terrain[]);
 
-void displayWaitRefresh();
+/**
+ * Permet de ralentir le deplacement des threads si il y a affichage pour plus de lisibilité
+ */
+void waitDisplayRefresh();
 
 #endif //PROJETCONCURRENT_DISPLAYSDL_H

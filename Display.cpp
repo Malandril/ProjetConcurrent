@@ -5,8 +5,11 @@
 #include <iostream>
 
 #include "Display.h"
+#include "main.h"
 
-void display(int max_x, int max_y, int &counter, Cell terrain[]) {
+bool canDisplay = true;
+
+void display(int &counter, Cell terrain[]) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stdout, "Échec de l'initialisation de la SDL (%s)\n", SDL_GetError());
         return;
@@ -26,11 +29,11 @@ void display(int max_x, int max_y, int &counter, Cell terrain[]) {
                 SDL_Event event;
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
                 SDL_RenderClear(renderer);
-                for (int x = 0; x < max_x; ++x) {
-                    for (int y = 0; y < max_y; ++y) {
-                        int value = terrain[x * max_y + y].readValue();
-                        if (value == 1 || value == 8) {
-                            if (value == 8) {
+                for (int x = 0; x < MAX_X; ++x) {
+                    for (int y = 0; y < MAX_Y; ++y) {
+                        int value = terrain[x * MAX_Y + y].readValue();
+                        if (value == 1 || value == OBSTACLE) {
+                            if (value == OBSTACLE) {
                                 SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
                             } else {
                                 SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
@@ -80,7 +83,7 @@ void display(int max_x, int max_y, int &counter, Cell terrain[]) {
     SDL_Quit();
 }
 
-void displayWaitRefresh() {
+void waitDisplayRefresh() {
     timespec t = {0, 10000000L};
     nanosleep(&t, nullptr);
 }

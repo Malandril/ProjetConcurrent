@@ -4,11 +4,12 @@
 #include <iostream>
 #include "Display.h"
 
+bool canDisplay = false;
 
-void display(int max_x, int max_y, int &counter, int terrain[]) {
+void display(int &counter, int terrain[]) {
 }
 
-void displayWaitRefresh(){}
+void waitDisplayRefresh() {}
 
 bool hasTrueDisplay() {
     return false;
