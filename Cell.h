@@ -13,9 +13,7 @@ class Cell {
 private:
     int value;
     int readerCount = 0;
-    pthread_mutex_t writeMutex = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t cellMutex = PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_t readMutex = PTHREAD_MUTEX_INITIALIZER;
 
     /**
      * Change la valeur de la cellule en entrant dans la section critique controlée par le Mutex writeMutex

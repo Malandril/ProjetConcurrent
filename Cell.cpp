@@ -7,35 +7,18 @@
 Cell::Cell(int value) : value(value) {}
 
 void Cell::moveIn() {
-    pthread_mutex_lock(&cellMutex);
     changeValue(1);
-
-
 }
 
 void Cell::moveOut() {
     changeValue(0);
-    pthread_mutex_unlock(&cellMutex);
 
 }
 
 int Cell::readValue() {
-
-    pthread_mutex_lock(&readMutex);
-    readerCount++;
-    if (readerCount == 1) {
-        pthread_mutex_lock(&writeMutex);
-    }
-    pthread_mutex_unlock(&readMutex);
-
+    pthread_mutex_lock(&cellMutex);
     int value = this->value;
-
-    pthread_mutex_lock(&readMutex);
-    readerCount--;
-    if (readerCount == 0) {
-        pthread_mutex_unlock(&writeMutex);
-    }
-    pthread_mutex_unlock(&readMutex);
+    pthread_mutex_unlock(&cellMutex);
     return value;
 }
 
@@ -45,9 +28,9 @@ void Cell::move(Cell &cell) {
 }
 
 void Cell::changeValue(int value) {
-    pthread_mutex_lock(&writeMutex);//lock ecriture
+    pthread_mutex_lock(&cellMutex);
     this->value = value;
-    pthread_mutex_unlock(&writeMutex);
+    pthread_mutex_unlock(&cellMutex);
 
 
 }
