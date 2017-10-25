@@ -14,6 +14,6 @@ target_link_libraries(DisplayLib ${SDL2_LIBRARIES})
 
 project(ProjetConcurrent)
 set(CMAKE_CXX_STANDARD 11)
-set(SOURCE_FILES main.cpp main.h Cell.cpp Cell.h main.h)
+set(SOURCE_FILES main.cpp main.h )
 add_executable(ProjetConcurrent ${SOURCE_FILES})
 target_link_libraries(ProjetConcurrent pthread DisplayLib)
