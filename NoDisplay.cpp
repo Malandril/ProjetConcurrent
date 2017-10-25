@@ -10,3 +10,4 @@ void display(int &counter, int terrain[]) {
 }
 
 void waitDisplayRefresh() {}
+

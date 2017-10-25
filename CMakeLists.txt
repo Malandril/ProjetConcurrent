@@ -7,7 +7,7 @@ if (Graphic)
     include_directories(${SDL2_INCLUDE_DIRS})
     add_library(DisplayLib SHARED Display.cpp Display.h)
 else ()
-    add_library(DisplayLib SHARED noDisplay.cpp Display.h)
+    add_library(DisplayLib SHARED NoDisplay.cpp Display.h)
 endif ()
 target_link_libraries(DisplayLib ${SDL2_LIBRARIES})
 

@@ -88,10 +88,6 @@ void waitDisplayRefresh() {
     nanosleep(&t, nullptr);
 }
 
-bool hasTrueDisplay() {
-    return true;
-}
-
 
 
 

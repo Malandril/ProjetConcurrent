@@ -11,11 +11,6 @@ using std::endl;
 using std::chrono::high_resolution_clock;
 using namespace std::chrono;
 
-
-static const int DEST_X = 0;
-static const int DEST_Y = 0;
-static const int REPEAT = 5;
-static const int SEED = 2501;
 Cell terrain[MAX_X][MAX_Y];
 int nbThread = 1;
 int counter = nbThread;
@@ -45,6 +40,8 @@ void setMetrics(long userTime[], long systemTime[], int i) {
 
 #endif
 
+pthread_mutex_t arrayMutex = PTHREAD_MUTEX_INITIALIZER;
+
 bool isValidCell(int x, int y);
 
 double distance(int x, int y, int xDest, int yDest);
@@ -65,8 +62,6 @@ double averageTime(const long timeArray[], int k);
 
 
 void spawnObstacle();
-
-void printTerrain();
 
 int main(int argc, char *argv[]) {
     int opt;
@@ -113,7 +108,7 @@ int main(int argc, char *argv[]) {
     int idT[nbThread];
     long posT[nbThread];
 
-    srand(2501); //allows the persons to always have the same position
+    srand(SEED); //allows the persons to always have the same position
     for (int k = 0; k < 10; ++k) {
         spawnObstacle();
     }
@@ -150,13 +145,12 @@ int main(int argc, char *argv[]) {
  *  essaie de créer un obstacle tant que les nombres aléatoires donnent des obtacles invalides
  */
 void spawnObstacle() {
-    int ox = 1 + rand() % (MAX_X - 5);
-    int oy = 1 + rand() % (MAX_Y - 5);
-    int ow = 1 + rand() % (MAX_X - ox) / 8;
-    int oh = 1 + rand() % (MAX_Y - oy - 1);
-    printf("ox: %d oy: %d ow: %d oh: %d %d\n", ox, oy, ow, oh, ow + ox);
-    for (int i = ox - 1; i < ox + ow + 1; ++i) {
-        for (int j = oy - 1; j < oy + oh + 1; ++j) {
+    int ox = 2 + rand() % (MAX_X - 80);
+    int oy = 2 + rand() % (MAX_Y - 80);
+    int ow = 2 + rand() % (MAX_X - ox);
+    int oh = 2 + rand() % (MAX_Y - oy);
+    for (int i = ox - 2; i < ox + ow + 2; ++i) {
+        for (int j = oy - 2; j < oy + oh + 2; ++j) {
             if (terrain[i][j].readValue() == OBSTACLE) {
                 spawnObstacle();
                 return;
