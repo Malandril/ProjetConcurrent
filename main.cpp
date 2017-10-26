@@ -25,7 +25,7 @@ void setMetrics(long userTime[], long systemTime[], int i);
 #if defined(_WIN32)
 
 void setMetrics(long userTime[], long systemTime[], int i) {
-    std::cerr << "Metrics not Working in windows";
+    std::cerr << "Metrics not Working in windows"<<endl;
 }
 
 
@@ -188,6 +188,12 @@ double averageTime(const long timeArray[], int k) {
     return average;
 }
 
+/**
+ *
+ * @param timeArray
+ * @param k
+ * @return
+ */
 int minTime(const long timeArray[], int k) {
     long min = timeArray[0];
     int minId = 0;
@@ -230,6 +236,10 @@ void createAndWaitThreads(pthread_t *tabT, int *idT, const long *posT) {
     };
 }
 
+/**
+ * Genere aleatoirement des personnes a des endroits valides
+ * @param posT
+ */
 void initPersonPos(long *posT) {
     for (int i = 0; i < nbThread; i++) {
         long x = rand() % (MAX_X * MAX_Y);
@@ -239,6 +249,11 @@ void initPersonPos(long *posT) {
     }
 }
 
+/**
+ * Fonction éxécuté par les threads et qui tourne jusqu'à ce que le thread arrive à destination
+ * @param args
+ * @return
+ */
 void *computePath(void *args) {
     int x = ((long) args) % MAX_X;
     int y = ((long) args) / MAX_X;
@@ -259,6 +274,12 @@ void *computePath(void *args) {
     }
 }
 
+/**
+ * Cette fonction permet de trouver La meilleur cellule vers laquelle se deplacer
+ * par rapport à la position courante x, y et s'y deplace
+ * @param x
+ * @param y
+ */
 void bestCell(int &x, int &y) {
     double minDistance = distance(DEST_X, DEST_Y, x, y);
     int tmpx = x;
@@ -282,10 +303,24 @@ void bestCell(int &x, int &y) {
     }
 }
 
+/**
+ * Cette fonction vérifie si la cellule est dans le tableau et si elle n'est pas deja prise
+ * @param x
+ * @param y
+ * @return vrai si cellule valide
+ */
 bool isValidCell(int x, int y) {
     return (x >= 0 && x < MAX_X && y >= 0 && y < MAX_Y) && (terrain[x][y] == 0);
 }
 
+/**
+ * Distance entre deux cellules
+ * @param x
+ * @param y
+ * @param xDest
+ * @param yDest
+ * @return
+ */
 double distance(int x, int y, int xDest, int yDest) {
     return sqrt(pow(xDest - x, 2) + pow(yDest - y, 2));
 }
