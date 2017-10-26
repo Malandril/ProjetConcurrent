@@ -269,7 +269,8 @@ void *computePath(void *args) {
     sem_wait(&arraySemaphore);
     terrain[x][y] = 0;
     sem_post(&arraySemaphore);
-    if (!metric && canDisplay) {// ce compteur permet à l'affichage de verifier quand tous les threads sont finis
+    if (!metric &&
+        canDisplay) {// ce compteur permet à l'affichage de verifier quand tous les threads sont finis et sa valeur est >=0
         sem_wait(&counter);
     }
 }
