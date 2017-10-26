@@ -9,7 +9,7 @@
 
 bool canDisplay = true;
 
-void display(int &counter, int terrain[]) {
+void display(sem_t &counter, int *terrain) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stdout, "Échec de l'initialisation de la SDL (%s)\n", SDL_GetError());
         return;
@@ -25,6 +25,7 @@ void display(int &counter, int terrain[]) {
         bool done = false;
         double xp = 2;
         double yp = xp;
+        int val = 1;
         if (window) {
             while (!done) {
                 SDL_Event event;
@@ -46,7 +47,8 @@ void display(int &counter, int terrain[]) {
                     }
                 }
                 SDL_RenderPresent(renderer);
-                if (counter == 0) {
+                sem_getvalue(&counter, &val);
+                if (val == 0) {
                     break;
                 }
                 while (SDL_PollEvent(&event)) {
