@@ -3,6 +3,7 @@
 //
 #include <pthread.h>
 #include "Cell.h"
+#include <semaphore.h>
 
 #ifndef PROJETCONCURRENT_DISPLAYSDL_H
 #define PROJETCONCURRENT_DISPLAYSDL_H
@@ -16,7 +17,7 @@ extern bool canDisplay;
  * @param counter
  * @param terrain
  */
-void display(int &counter, Cell terrain[]);
+void display(sem_t &counter, Cell terrain[]);
 
 /**
  * Permet de ralentir le deplacement des threads si il y a affichage pour plus de lisibilité

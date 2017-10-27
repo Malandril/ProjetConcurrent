@@ -2,28 +2,31 @@
 #include <cmath>
 #include <unistd.h>
 #include <chrono>
-
+#include <semaphore.h>
 #include "main.h"
 #include "Display.h"
 
 using std::cout;
 using std::endl;
 using std::chrono::high_resolution_clock;
+
 using namespace std::chrono;
 
 Cell terrain[MAX_X][MAX_Y];
-int nbThread = 1;
-int counter = nbThread;
+unsigned int nbThread = 1;
+sem_t counter ;
 bool metric = false;
-pthread_mutex_t counterMutex = PTHREAD_MUTEX_INITIALIZER;
 
+
+sem_t arraySemaphore;
 
 void setMetrics(long userTime[], long systemTime[], int i);
 
 #if defined(_WIN32)
 
 void setMetrics(long userTime[], long systemTime[], int i) {
-    std::cerr << "Metrics not Working in windows";
+    std::cerr << "Metrics not Working in windows"<<endl;
+    exit(4);
 }
 
 #else
@@ -37,10 +40,7 @@ void setMetrics(long userTime[], long systemTime[], int i) {
     systemTime[i] = usage.ru_stime.tv_usec;
 }
 
-
 #endif
-
-pthread_mutex_t arrayMutex = PTHREAD_MUTEX_INITIALIZER;
 
 bool isValidCell(int x, int y);
 
@@ -74,8 +74,7 @@ int main(int argc, char *argv[]) {
                         std::cerr << " Le nombre doit etre entre 0 et 9" << endl;
                         exit(1);
                     }
-                    nbThread = static_cast<int>(pow(2, y));
-                    counter = nbThread;
+                    nbThread = static_cast<unsigned int>(pow(2, y));
                 }
                 break;
             case 't':
@@ -97,7 +96,8 @@ int main(int argc, char *argv[]) {
 
         }
     }
-
+    sem_init(&arraySemaphore, 0, 1);
+    sem_init(&counter, 0, nbThread);
     for (int i = 0; i < MAX_Y; ++i) {
         for (int j = 0; j < MAX_X; ++j) {
             terrain[j][i] = Cell(); //initialise les cellules a zero
@@ -114,9 +114,9 @@ int main(int argc, char *argv[]) {
     }
 
     initPersonPos(posT);
+    high_resolution_clock::time_point start;
     if (metric) {
-        high_resolution_clock::time_point start;
-        cout << "Running program 5 times" << endl;
+        cout << "Running program " << REPEAT << " times with " << nbThread << " threads" << endl;
         long responseTime[REPEAT];
         long userTime[REPEAT];
         long systemTime[REPEAT];
@@ -134,15 +134,18 @@ int main(int argc, char *argv[]) {
         std::cout << "Temps CPU espace utilisateur moyen: " << user / 1000.0 << " ms temps système moyen: "
                   << system / 1000.0 << " ms" << std::endl;
     } else {
-        cout << " Running Program" << endl;
+        start = std::chrono::high_resolution_clock::now();
+        cout << "Running program with " << nbThread << " threads" << endl;
         createAndWaitThreads(tabT, idT, posT);
+        auto end = high_resolution_clock::now();
+        cout << std::chrono::duration_cast<milliseconds>(end - start).count() << " ms" << endl;
     }
     return 0;
 
 }
 
 /**
- *  essaie de créer un obstacle tant que les nombres aléatoires donnent des obtacles invalides
+ *  Essaie de créer un obstacle tant que les nombres aléatoires donnent des obtacles invalides
  */
 void spawnObstacle() {
     int ox = 2 + rand() % (MAX_X - 80);
@@ -165,7 +168,7 @@ void spawnObstacle() {
 }
 
 /**
- * calcule le temps moyen avec le tableau d'entier donné
+ * Calcule le temps moyen avec le tableau d'entier donné
  * @param timeArray
  * @param k
  * @return
@@ -183,12 +186,6 @@ double averageTime(const long timeArray[], int k) {
     return average;
 }
 
-/**
- *
- * @param timeArray
- * @param k
- * @return
- */
 int minTime(const long timeArray[], int k) {
     long min = timeArray[0];
     int minId = 0;
@@ -260,9 +257,7 @@ void *computePath(void *args) {
     }
     terrain[x][y].moveOut();
     if (!metric && canDisplay) {// ce compteur permet à l'affichage de verifier quand tous les threads sont finis
-        pthread_mutex_lock(&counterMutex);
-        counter--;
-        pthread_mutex_unlock(&counterMutex);
+        sem_wait(&counter);
     }
 }
 
