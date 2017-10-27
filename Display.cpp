@@ -9,7 +9,7 @@
 
 bool canDisplay = true;
 
-void display(sem_t &counter, int *terrain) {
+void display(sem_t &counter, Cell *terrain) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stdout, "Échec de l'initialisation de la SDL (%s)\n", SDL_GetError());
         return;
