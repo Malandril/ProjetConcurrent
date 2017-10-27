@@ -7,13 +7,13 @@
 
 
 #include <pthread.h>
+#include <semaphore.h>
 #include <ostream>
 
 class Cell {
 private:
     int value;
-    int readerCount = 0;
-    pthread_mutex_t cellMutex = PTHREAD_MUTEX_INITIALIZER;
+    sem_t cellMutex;
 
     /**
      * Change la valeur de la cellule en entrant dans la section critique controlée par le Mutex writeMutex

@@ -4,7 +4,9 @@
 
 #include "Cell.h"
 
-Cell::Cell(int value) : value(value) {}
+Cell::Cell(int value) : value(value) {
+    sem_init(&cellMutex, 0, 1);
+}
 
 void Cell::moveIn() {
     changeValue(1);
@@ -16,9 +18,9 @@ void Cell::moveOut() {
 }
 
 int Cell::readValue() {
-    pthread_mutex_lock(&cellMutex);
+    sem_wait(&cellMutex);
     int value = this->value;
-    pthread_mutex_unlock(&cellMutex);
+    sem_post(&cellMutex);
     return value;
 }
 
@@ -28,9 +30,9 @@ void Cell::move(Cell &cell) {
 }
 
 void Cell::changeValue(int value) {
-    pthread_mutex_lock(&cellMutex);
+    sem_wait(&cellMutex);
     this->value = value;
-    pthread_mutex_unlock(&cellMutex);
+    sem_post(&cellMutex);
 
 
 }
