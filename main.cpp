@@ -26,6 +26,7 @@ void setMetrics(long userTime[], long systemTime[], int i);
 
 void setMetrics(long userTime[], long systemTime[], int i) {
     std::cerr << "Metrics not Working in windows"<<endl;
+    exit(4);
 }
 
 
@@ -74,7 +75,7 @@ int main(int argc, char *argv[]) {
                     int y = atoi(optarg);
                     if (y < 0 || y > 9) {
                         std::cerr << " Le nombre doit etre entre 0 et 9" << endl;
-//                        exit(1);
+                        exit(1);
                     }
                     nbThread = static_cast<unsigned int>(pow(2, y));
                 }
@@ -147,7 +148,7 @@ int main(int argc, char *argv[]) {
 }
 
 /**
- *  essaie de créer un obstacle tant que les nombres aléatoires donnent des obtacles invalides
+ *  Essaie de créer un obstacle tant que les nombres aléatoires donnent des obtacles invalides
  */
 void spawnObstacle() {
     int ox = 1 + rand() % (MAX_X - 5);
@@ -170,7 +171,7 @@ void spawnObstacle() {
 }
 
 /**
- * calcule le temps moyen avec le tableau d'entier donné
+ * Calcule le temps moyen avec le tableau d'entier donné
  * @param timeArray
  * @param k
  * @return
@@ -188,12 +189,6 @@ double averageTime(const long timeArray[], int k) {
     return average;
 }
 
-/**
- *
- * @param timeArray
- * @param k
- * @return
- */
 int minTime(const long timeArray[], int k) {
     long min = timeArray[0];
     int minId = 0;
