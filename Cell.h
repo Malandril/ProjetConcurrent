@@ -13,7 +13,8 @@
 class Cell {
 private:
     int value;
-    sem_t cellMutex;
+    sem_t rwMutex;
+    sem_t inCellMutex;
 
     /**
      * Change la valeur de la cellule en entrant dans la section critique controlée par le Mutex writeMutex

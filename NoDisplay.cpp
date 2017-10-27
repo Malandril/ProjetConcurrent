@@ -6,7 +6,7 @@
 
 bool canDisplay = false;
 
-void display(int &counter, int terrain[]) {
+void display(int &counter, Cell terrain[]) {
 }
 
 void waitDisplayRefresh() {}

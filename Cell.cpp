@@ -5,22 +5,24 @@
 #include "Cell.h"
 
 Cell::Cell(int value) : value(value) {
-    sem_init(&cellMutex, 0, 1);
+    sem_init(&rwMutex, 0, 1);
+    sem_init(&inCellMutex, 0, 1);
 }
 
 void Cell::moveIn() {
+    sem_wait(&inCellMutex);
     changeValue(1);
 }
 
 void Cell::moveOut() {
     changeValue(0);
-
+    sem_post(&inCellMutex);
 }
 
 int Cell::readValue() {
-    sem_wait(&cellMutex);
+    sem_wait(&rwMutex);
     int value = this->value;
-    sem_post(&cellMutex);
+    sem_post(&rwMutex);
     return value;
 }
 
@@ -30,9 +32,7 @@ void Cell::move(Cell &cell) {
 }
 
 void Cell::changeValue(int value) {
-    sem_wait(&cellMutex);
+    sem_wait(&rwMutex);
     this->value = value;
-    sem_post(&cellMutex);
-
-
+    sem_post(&rwMutex);
 }
