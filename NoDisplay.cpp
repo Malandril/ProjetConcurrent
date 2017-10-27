@@ -3,10 +3,11 @@
 //
 #include <iostream>
 #include "Display.h"
+#include <semaphore.h>
 
 bool canDisplay = false;
 
-void display(int &counter, Cell terrain[]) {
+void display(sem_t &counter, int terrain[]) {
 }
 
 void waitDisplayRefresh() {}

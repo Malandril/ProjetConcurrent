@@ -9,11 +9,12 @@
 
 bool canDisplay = true;
 
-void display(int &counter, Cell terrain[]) {
+void display(sem_t &counter, Cell *terrain) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stdout, "Échec de l'initialisation de la SDL (%s)\n", SDL_GetError());
         return;
     }
+
     {
         /* Création de la fenêtre */
         SDL_Window *window = nullptr;
@@ -24,6 +25,7 @@ void display(int &counter, Cell terrain[]) {
         bool done = false;
         double xp = 2;
         double yp = xp;
+        int val = 1;
         if (window) {
             while (!done) {
                 SDL_Event event;
@@ -45,7 +47,8 @@ void display(int &counter, Cell terrain[]) {
                     }
                 }
                 SDL_RenderPresent(renderer);
-                if (counter == 0) {
+                sem_getvalue(&counter, &val);
+                if (val == 0) {
                     break;
                 }
                 while (SDL_PollEvent(&event)) {
