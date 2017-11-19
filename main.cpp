@@ -1,26 +1,32 @@
+#include <array>
 #include <iostream>
 #include <cmath>
 #include <unistd.h>
 #include <chrono>
 #include <semaphore.h>
+#include <vector>
 #include "main.h"
 #include "Display.h"
+#include "Point.h"
+#include "threads/Threading.h"
+#include "threads/Person.h"
+#include "threads/OptimistPerson.h"
 
 using std::cout;
 using std::endl;
 using std::chrono::high_resolution_clock;
-
+using std::vector;
+using std::array;
 using namespace std::chrono;
 
-Cell terrain[MAX_X][MAX_Y];
-unsigned int nbThread = 1;
-sem_t counter ;
+vector<vector<Cell *>> terrain(MAX_X, vector<Cell *>(MAX_Y));
+int nbThread = 1;
+sem_t counter;
 bool metric = false;
-
 
 sem_t arraySemaphore;
 
-void setMetrics(long userTime[], long systemTime[], int i);
+void setMetrics(array<long, REPEAT> &userTime, array<long, REPEAT> &systemTime, int i);
 
 #if defined(_WIN32)
 
@@ -33,7 +39,7 @@ void setMetrics(long userTime[], long systemTime[], int i) {
 
 #include <sys/resource.h>
 
-void setMetrics(long userTime[], long systemTime[], int i) {
+void setMetrics(array<long, REPEAT> &userTime, array<long, REPEAT> &systemTime, int i) {
     rusage usage = {};
     getrusage(RUSAGE_SELF, &usage);
     userTime[i] = usage.ru_utime.tv_usec;
@@ -42,29 +48,97 @@ void setMetrics(long userTime[], long systemTime[], int i) {
 
 #endif
 
-bool isValidCell(int x, int y);
+void initPersonPos(vector<Point> &posT);
 
-double distance(int x, int y, int xDest, int yDest);
+int maxTime(array<long, REPEAT> timeArray, int k);
 
-void *computePath(void *args);
+int minTime(array<long, REPEAT> timeArray, int k);
 
-void bestCell(int &x, int &y);
-
-void initPersonPos(long *posT);
-
-void createAndWaitThreads(pthread_t *tabT, int *idT, const long *posT);
-
-int maxTime(const long timeArray[], int k);
-
-int minTime(const long timeArray[], int k);
-
-double averageTime(const long timeArray[], int k);
+double averageTime(array<long, REPEAT> timeArray, int k);
 
 
 void spawnObstacle();
 
+void parseArgs(int argc, char *const *argv, int opt);
+
+void createAndWaitThreads(vector<pthread_t> &tabT, vector<int> &idT, vector<Point> &posT);
+
 int main(int argc, char *argv[]) {
     int opt;
+    parseArgs(argc, argv, opt);
+    sem_init(&arraySemaphore, 0, 1);
+    for (int i = 0; i < MAX_Y; ++i) {
+        for (int j = 0; j < MAX_X; ++j) {
+            terrain[j][i] = new LockableCell(0); //initialise les cellules a zero
+        }
+    }
+
+    vector<pthread_t> tabT(nbThread);
+    vector<int> idT(nbThread);
+    vector<Point> posArray(nbThread);
+
+    srand(SEED); //allows the persons to always have the same position
+    for (int k = 0; k < 10; ++k) {
+        spawnObstacle();
+    }
+
+    initPersonPos(posArray);
+    high_resolution_clock::time_point start;
+//    Person t = Person(nbThread, terrain, metric, counter);
+    if (metric) {
+        cout << "Running program " << REPEAT << " times with " << nbThread << " threads" << endl;
+        array<long, REPEAT> responseTime{};
+        array<long, REPEAT> userTime{};
+        array<long, REPEAT> systemTime{};
+        for (int i = 0; i < REPEAT; i++) {
+
+            start = std::chrono::high_resolution_clock::now();
+            createAndWaitThreads(tabT, idT, posArray);
+            auto end = high_resolution_clock::now();
+            responseTime[i] = std::chrono::duration_cast<milliseconds>(end - start).count();
+            setMetrics(userTime, systemTime, i);
+        }
+        double response = averageTime(responseTime, REPEAT);
+        double user = averageTime(userTime, REPEAT);
+        double system = averageTime(systemTime, REPEAT);
+        std::cout << "Temps de réponse moyen: " << response << " ms" << std::endl;
+        std::cout << "Temps CPU espace utilisateur moyen: " << user / 1000.0 << " ms temps système moyen: "
+                  << system / 1000.0 << " ms" << std::endl;
+    } else {
+        start = std::chrono::high_resolution_clock::now();
+        cout << "Running program with " << nbThread << " threads" << endl;
+        createAndWaitThreads(tabT, idT, posArray);
+        auto end = high_resolution_clock::now();
+        cout << std::chrono::duration_cast<milliseconds>(end - start).count() << " ms" << endl;
+    }
+    for (int l = 0; l < terrain.size(); ++l) {
+        for (int i = 0; i < terrain[0].size(); ++i) {
+            delete terrain[l][i];
+        }
+    }
+    return 0;
+}
+
+void createAndWaitThreads(vector<pthread_t> &tabT, vector<int> &idT, vector<Point> &posT) {
+    sem_init(&counter, 0, nbThread);
+    for (int j = 0; j < nbThread; ++j) {
+        Point p = posT[j];
+        terrain[p.x][p.y]->changeValue(1);
+
+        idT[j] = pthread_create(&tabT[j], nullptr, Person::salut2,
+                                new OptimistPerson(nbThread, terrain, metric, counter, p));
+    }
+    if (metric || !canDisplay) {
+        for (int k = 0; k < nbThread; ++k) {
+            pthread_join(tabT[k], nullptr);
+        }
+    } else {
+        display(counter, terrain);
+    };
+}
+
+
+void parseArgs(int argc, char *const *argv, int opt) {
     while ((opt = getopt(argc, argv, "p::t::m")) != -1) { //parses arguments and selects relevant ones
         switch (opt) {
             case 'p':
@@ -93,55 +167,8 @@ int main(int argc, char *argv[]) {
                 break;
             default:
                 break;
-
         }
     }
-    sem_init(&arraySemaphore, 0, 1);
-    sem_init(&counter, 0, nbThread);
-    for (int i = 0; i < MAX_Y; ++i) {
-        for (int j = 0; j < MAX_X; ++j) {
-            terrain[j][i] = Cell(); //initialise les cellules a zero
-        }
-    }
-
-    pthread_t tabT[nbThread];
-    int idT[nbThread];
-    long posT[nbThread];
-
-    srand(SEED); //allows the persons to always have the same position
-    for (int k = 0; k < 10; ++k) {
-        spawnObstacle();
-    }
-
-    initPersonPos(posT);
-    high_resolution_clock::time_point start;
-    if (metric) {
-        cout << "Running program " << REPEAT << " times with " << nbThread << " threads" << endl;
-        long responseTime[REPEAT];
-        long userTime[REPEAT];
-        long systemTime[REPEAT];
-        for (int i = 0; i < REPEAT; i++) {
-            start = std::chrono::high_resolution_clock::now();
-            createAndWaitThreads(tabT, idT, posT);
-            auto end = high_resolution_clock::now();
-            responseTime[i] = std::chrono::duration_cast<milliseconds>(end - start).count();
-            setMetrics(userTime, systemTime, i);
-        }
-        double response = averageTime(responseTime, REPEAT);
-        double user = averageTime(userTime, REPEAT);
-        double system = averageTime(systemTime, REPEAT);
-        std::cout << "Temps de réponse moyen: " << response << " ms" << std::endl;
-        std::cout << "Temps CPU espace utilisateur moyen: " << user / 1000.0 << " ms temps système moyen: "
-                  << system / 1000.0 << " ms" << std::endl;
-    } else {
-        start = std::chrono::high_resolution_clock::now();
-        cout << "Running program with " << nbThread << " threads" << endl;
-        createAndWaitThreads(tabT, idT, posT);
-        auto end = high_resolution_clock::now();
-        cout << std::chrono::duration_cast<milliseconds>(end - start).count() << " ms" << endl;
-    }
-    return 0;
-
 }
 
 /**
@@ -151,10 +178,10 @@ void spawnObstacle() {
     int ox = 2 + rand() % (MAX_X - 80);
     int oy = 2 + rand() % (MAX_Y - 80);
     int ow = 2 + rand() % (MAX_X - ox);
-    int oh = 2 + rand() % (MAX_Y - oy);
+    int oh = 2 + rand() % (MAX_Y - oy - 2);
     for (int i = ox - 2; i < ox + ow + 2; ++i) {
         for (int j = oy - 2; j < oy + oh + 2; ++j) {
-            if (terrain[i][j].readValue() == OBSTACLE) {
+            if (terrain[i][j]->readValue() == OBSTACLE) {
                 spawnObstacle();
                 return;
             }
@@ -162,7 +189,7 @@ void spawnObstacle() {
     }
     for (int i1 = ox; i1 < ox + ow; ++i1) {
         for (int j2 = oy; j2 < oy + oh; ++j2) {
-            terrain[i1][j2] = Cell(OBSTACLE);
+            terrain[i1][j2] = new Cell(OBSTACLE);
         }
     }
 }
@@ -173,7 +200,7 @@ void spawnObstacle() {
  * @param k
  * @return
  */
-double averageTime(const long timeArray[], int k) {
+double averageTime(const array<long, REPEAT> timeArray, int k) {
     int maxId = maxTime(timeArray, k);
     int minId = minTime(timeArray, k);
     long sum = 0;
@@ -186,7 +213,7 @@ double averageTime(const long timeArray[], int k) {
     return average;
 }
 
-int minTime(const long timeArray[], int k) {
+int minTime(const array<long, REPEAT> timeArray, int k) {
     long min = timeArray[0];
     int minId = 0;
     for (int j = 0; j < k; ++j) {
@@ -197,7 +224,7 @@ int minTime(const long timeArray[], int k) {
     return minId;
 }
 
-int maxTime(const long timeArray[], int k) {
+int maxTime(const array<long, REPEAT> timeArray, int k) {
     long max = 0;
     int maxId = 0;
     for (int j = 0; j < k; ++j) {
@@ -210,103 +237,19 @@ int maxTime(const long timeArray[], int k) {
 }
 
 /**
- * Cette fonction va créer tous les threads et va les attendres
- * @param tabT
- * @param idT
- * @param posT
- */
-void createAndWaitThreads(pthread_t *tabT, int *idT, const long *posT) {
-    for (int j = 0; j < nbThread; ++j) {
-        idT[j] = pthread_create(&tabT[j], nullptr, computePath, (void *) posT[j]);
-    }
-    if (metric || !canDisplay) {
-        for (int k = 0; k < nbThread; ++k) {
-            pthread_join(tabT[k], nullptr);
-        }
-    } else {
-        display(counter, (Cell *) terrain);
-    };
-}
-
-/**
  * Genere aleatoirement des personnes a des endroits valides
  * @param posT
  */
-void initPersonPos(long *posT) {
+void initPersonPos(vector<Point> &posT) {
     for (int i = 0; i < nbThread; i++) {
-        long x = rand() % (MAX_X * MAX_Y);
-        while (terrain[x % MAX_X][x / MAX_X].readValue() || x == 0) x = rand() % (MAX_X * MAX_Y);
-        terrain[x % MAX_X][x / MAX_X].moveIn();
-        posT[i] = x;
-    }
-}
-
-/**
- * Fonction éxécuté par les threads et qui tourne jusqu'à ce que le thread arrive à destination
- * @param args
- * @return
- */
-void *computePath(void *args) {
-    int x = ((long) args) % MAX_X;
-    int y = ((long) args) / MAX_X;
-    while (x != DEST_X || y != DEST_Y) {
-        bestCell(x, y);
-        if (!metric && canDisplay) {
-            waitDisplayRefresh(); //ralentit le deplacement des threads si il y a affichage pour + de lisibilité
+        int x = rand() % MAX_X;
+        int y = rand() % MAX_Y;
+        while (terrain[x][y]->readValue() || (x == 0 && y == 0)) {
+            x = rand() % MAX_X;
+            y = rand() % MAX_Y;
         }
-    }
-    terrain[x][y].moveOut();
-    if (!metric && canDisplay) {// ce compteur permet à l'affichage de verifier quand tous les threads sont finis
-        sem_wait(&counter);
+        terrain[x][y]->changeValue(1);
+        posT[i] = {x, y};
     }
 }
 
-/**
- * Cette fonction permet de trouver La meilleur cellule vers laquelle se deplacer
- * par rapport à la position courante x, y et s'y deplace
- * @param x
- * @param y
- */
-void bestCell(int &x, int &y) {
-    double minDistance = distance(DEST_X, DEST_Y, x, y);
-    int tmpx = x;
-    int tmpy = y;
-    double dist;
-    for (int i = y - 1; i <= y + 2; ++i) {
-        for (int j = x - 1; j < x + 2; ++j) {
-            dist = distance(j, i, DEST_X, DEST_Y);
-            if (isValidCell(j, i) && dist < minDistance) {
-                minDistance = dist;
-                tmpx = j;
-                tmpy = i;
-            }
-        }
-    }
-    if (tmpx != x || tmpy != y) {
-        terrain[x][y].move(terrain[tmpx][tmpy]);
-        x = tmpx;
-        y = tmpy;
-    }
-}
-
-/**
- * Cette fonction vérifie si la cellule est dans le tableau et si elle n'est pas deja prise
- * @param x
- * @param y
- * @return vrai si cellule valide
- */
-bool isValidCell(int x, int y) {
-    return (x >= 0 && x < MAX_X && y >= 0 && y < MAX_Y) && (terrain[x][y].readValue() == 0);
-}
-
-/**
- * Distance entre deux cellules
- * @param x
- * @param y
- * @param xDest
- * @param yDest
- * @return
- */
-double distance(int x, int y, int xDest, int yDest) {
-    return sqrt(pow(xDest - x, 2) + pow(yDest - y, 2));
-}

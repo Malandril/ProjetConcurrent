@@ -7,7 +7,7 @@
 
 bool canDisplay = false;
 
-void display(sem_t &counter, int terrain[]) {
+void display(sem_t &counter, vector<vector<Cell *>> &terrain) {
 }
 
 void waitDisplayRefresh() {}
