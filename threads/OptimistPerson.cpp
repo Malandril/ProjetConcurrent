@@ -7,7 +7,12 @@
 #include "../main.h"
 
 OptimistPerson::OptimistPerson(int nbThread, vector<vector<Cell *>> &terrain, bool metric, sem_t &counter,
-                               const Point pos) : Person(nbThread, terrain, metric, counter, pos) {}
+                               const Point pos) : Person(nbThread, terrain, metric, counter, pos) {
+    int value = terrain[pos.x][pos.y]->readValue();
+    if (value != 1) {
+        std::cout << value << " AAAAAAAAAAA" << std::endl;
+    }
+}
 
 void OptimistPerson::bestCell() {
     double minDistance = distance(DEST_X, DEST_Y, pos.x, pos.y);
@@ -25,24 +30,24 @@ void OptimistPerson::bestCell() {
         }
     }
     if (tmpx != pos.x || tmpy != pos.y) {
-        sem_t &sem = terrain[pos.x][pos.y]->cellSemaphore;
-        sem_wait(&sem);
         sem_wait(&terrain[tmpx][tmpy]->cellSemaphore);
-
         int value = terrain[pos.x][pos.y]->readValue();
-        if (value != 1) {
-            std::cout << value << std::endl;
-        }
         int dest = terrain[tmpx][tmpy]->readValue();
-        if (value == 1 && dest == 0) {
+        if (value != 1) {
+//            std::cout << value <<" b "<<dest<< std::endl;
+        }
+        if (dest == 0) {
             terrain[pos.x][pos.y]->move(*terrain[tmpx][tmpy]);
             pos.x = tmpx;
             pos.y = tmpy;
         } else {
-//            std::cout << value << " " << dest << std::endl;
-
+//            std::cout << terrain[pos.x][pos.y]->readValue() << " SDQDD " <<  terrain[tmpx][tmpy]->readValue()<<std::endl;
         }
-        sem_post(&sem);
         sem_post(&terrain[tmpx][tmpy]->cellSemaphore);
+        value = terrain[pos.x][pos.y]->readValue();
+        int b = terrain[tmpx][tmpy]->readValue();
+        if (value != 1) {
+            std::cout << value << "BBBBBBBBBBBBBBBBBBBBBBB " << b << std::endl;
+        }
     }
 }

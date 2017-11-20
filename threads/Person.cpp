@@ -6,7 +6,6 @@
 #include <semaphore.h>
 #include <cmath>
 #include <chrono>
-#include <iostream>
 #include "Person.h"
 #include "../Display.h"
 #include "../main.h"
@@ -82,9 +81,6 @@ void Person::bestCell() {
 
     if (tmpx != pos.x || tmpy != pos.y) {
         int value = terrain[pos.x][pos.y]->readValue();
-        if (value != 1) {
-            std::cout << value << std::endl;
-        }
         terrain[pos.x][pos.y]->move(*terrain[tmpx][tmpy]);
         pos.x = tmpx;
         pos.y = tmpy;

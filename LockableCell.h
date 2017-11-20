@@ -14,8 +14,8 @@
 class LockableCell : public Cell {
 protected:
     sem_t rwMutex;
-    sem_t inCellMutex;
-
+    pthread_mutex_t inCellMutex;
+    pthread_cond_t cond;
 public:
 
     /**

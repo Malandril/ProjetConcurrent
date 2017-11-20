@@ -11,5 +11,5 @@
 #define DEST_X 0
 #define DEST_Y 0
 #define SEED 2501
-#define REPEAT 3
+#define REPEAT 50
 #endif //PROJETCONCURRENT_MAIN_H

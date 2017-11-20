@@ -23,9 +23,11 @@ int Cell::readValue() {
 void Cell::move(Cell &cell) {
     changeValue(0);
     cell.changeValue(1);
+
 }
 
 void Cell::changeValue(int value) {
     this->value = value;
+
 }
 

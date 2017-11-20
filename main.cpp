@@ -48,7 +48,7 @@ void setMetrics(array<long, REPEAT> &userTime, array<long, REPEAT> &systemTime, 
 
 #endif
 
-void initPersonPos(vector<Point> &posT);
+void initPersonPos(vector<Point> &posVector);
 
 int maxTime(array<long, REPEAT> timeArray, int k);
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     sem_init(&arraySemaphore, 0, 1);
     for (int i = 0; i < MAX_Y; ++i) {
         for (int j = 0; j < MAX_X; ++j) {
-            terrain[j][i] = new LockableCell(0); //initialise les cellules a zero
+            terrain[j][i] = new Cell(0); //initialise les cellules a zero
         }
     }
 
@@ -123,8 +123,7 @@ void createAndWaitThreads(vector<pthread_t> &tabT, vector<int> &idT, vector<Poin
     sem_init(&counter, 0, nbThread);
     for (int j = 0; j < nbThread; ++j) {
         Point p = posT[j];
-        terrain[p.x][p.y]->changeValue(1);
-
+        terrain[p.x][p.y]->moveIn();
         idT[j] = pthread_create(&tabT[j], nullptr, Person::salut2,
                                 new OptimistPerson(nbThread, terrain, metric, counter, p));
     }
@@ -238,9 +237,9 @@ int maxTime(const array<long, REPEAT> timeArray, int k) {
 
 /**
  * Genere aleatoirement des personnes a des endroits valides
- * @param posT
+ * @param posVector
  */
-void initPersonPos(vector<Point> &posT) {
+void initPersonPos(vector<Point> &posVector) {
     for (int i = 0; i < nbThread; i++) {
         int x = rand() % MAX_X;
         int y = rand() % MAX_Y;
@@ -249,7 +248,10 @@ void initPersonPos(vector<Point> &posT) {
             y = rand() % MAX_Y;
         }
         terrain[x][y]->changeValue(1);
-        posT[i] = {x, y};
+        posVector[i] = {x, y};
+    }
+    for (int j = 0; j < posVector.size(); ++j) {
+        terrain[posVector[j].x][posVector[j].y]->moveOut();
     }
 }
 

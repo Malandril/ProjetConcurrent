@@ -6,17 +6,21 @@
 
 LockableCell::LockableCell(int value) : Cell(value) {
     sem_init(&rwMutex, 0, 1);
-    sem_init(&inCellMutex, 0, 1);
+    pthread_mutex_init(&inCellMutex, nullptr);
+    pthread_cond_init(&cond, nullptr);
 }
 
 void LockableCell::moveIn() {
-    sem_wait(&inCellMutex);
+    pthread_mutex_lock(&inCellMutex);
+    while (this->value == 1)
+        pthread_cond_wait(&cond, &inCellMutex);
     changeValue(1);
+    pthread_mutex_unlock(&inCellMutex);
 }
 
 void LockableCell::moveOut() {
     changeValue(0);
-    sem_post(&inCellMutex);
+    pthread_cond_broadcast(&cond);
 }
 
 int LockableCell::readValue() {
