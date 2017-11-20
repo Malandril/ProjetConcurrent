@@ -123,7 +123,7 @@ void createAndWaitThreads(vector<pthread_t> &tabT, vector<int> &idT, vector<Poin
     sem_init(&counter, 0, nbThread);
     for (int j = 0; j < nbThread; ++j) {
         Point p = posT[j];
-        terrain[p.x][p.y]->moveIn();
+        terrain[p.x][p.y]->spawn();
         idT[j] = pthread_create(&tabT[j], nullptr, Person::salut2,
                                 new OptimistPerson(nbThread, terrain, metric, counter, p));
     }

@@ -22,6 +22,8 @@ public:
 
     virtual void move(Cell &cell);
 
+    void spawn();
+
     virtual void changeValue(int value);
 
 protected:
