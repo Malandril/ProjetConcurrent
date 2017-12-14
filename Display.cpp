@@ -3,18 +3,19 @@
 //
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <caca_conio.h>
 
 #include "Display.h"
 #include "main.h"
 
 bool canDisplay = true;
 
-void display(sem_t &counter, vector<vector<Cell *>> &terrain) {
+void *display(void *arg) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stdout, "Échec de l'initialisation de la SDL (%s)\n", SDL_GetError());
-        return;
+        return nullptr;
     }
-
+    vector<vector<Cell *>> &terrain = (vector<vector<Cell *>> &) (*(vector<vector<Cell *>> *) arg);
 
     /* Création de la fenêtre */
     SDL_Window *window = nullptr;
@@ -25,7 +26,6 @@ void display(sem_t &counter, vector<vector<Cell *>> &terrain) {
     bool done = false;
     double xp = 2;
     double yp = xp;
-    int val = 1;
     if (window) {
         while (!done) {
             SDL_Event event;
@@ -33,24 +33,36 @@ void display(sem_t &counter, vector<vector<Cell *>> &terrain) {
             SDL_RenderClear(renderer);
             for (int x = 0; x < terrain.size(); ++x) {
                 for (int y = 0; y < terrain[0].size(); ++y) {
-                    int value = terrain[x][y]->readValue();
-                    if (value == 1 || value == OBSTACLE) {
-                        if (value == OBSTACLE) {
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
-                        } else {
-                            SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+                    Cell *cell = terrain[x][y];
+                    if (cell != nullptr) {
+                        int value = cell->readValue();
+                        int c = 0;
+                        ThreadPart *part = cell->owner;
+                        if (value == 1 || value == OBSTACLE || part != nullptr) {
+                            if (part != nullptr) {
+                                c = 60;
+
+                                Uint8 i = static_cast<Uint8>(part->getPos().x + part->getPos().y);
+                                SDL_SetRenderDrawColor(renderer, i, c, i, SDL_ALPHA_OPAQUE);
+
+
+                            } else if (value == OBSTACLE) {
+                                SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
+                            }
+                            if (value == 1) {
+                                SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+                            }
+                            SDL_Rect rect = {static_cast<int>(xp * x), static_cast<int>(yp * y), static_cast<int>(xp),
+                                             static_cast<int>(yp)};
+                            SDL_RenderFillRect(renderer, &rect);
                         }
-                        SDL_Rect rect = {static_cast<int>(xp * x), static_cast<int>(yp * y), static_cast<int>(xp),
-                                         static_cast<int>(yp)};
-                        SDL_RenderFillRect(renderer, &rect);
+                    } else {
+                        return nullptr;
                     }
                 }
             }
+
             SDL_RenderPresent(renderer);
-            sem_getvalue(&counter, &val);
-            if (val == 0) {
-                break;
-            }
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
                     done = SDL_TRUE;

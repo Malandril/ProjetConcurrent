@@ -12,6 +12,8 @@ endif ()
 target_link_libraries(DisplayLib ${SDL2_LIBRARIES})
 project(ProjetConcurrent)
 set(CMAKE_CXX_STANDARD 11)
-set(SOURCE_FILES main.cpp main.h LockableCell.cpp LockableCell.h Cell.cpp Cell.h threads/Person.cpp threads/Person.h threads/Threading.h Point.cpp Point.h threads/OptimistPerson.cpp threads/OptimistPerson.h)
+set(SOURCE_FILES main.cpp main.h Cell/LockableCell.cpp Cell/LockableCell.h Cell/Cell.cpp Cell/Cell.h threads/PersonThread.cpp
+        threads/PersonThread.h threads/Threading.h threads/Threading.cpp threads/ThreadPart.cpp threads/ThreadPart.h
+        Point.cpp Point.h)
 add_executable(ProjetConcurrent ${SOURCE_FILES})
 target_link_libraries(ProjetConcurrent pthread DisplayLib)

@@ -1,14 +1,14 @@
 //
 // Created by user on 20/10/17.
 //
-#include <pthread.h>
-#include "LockableCell.h"
-#include <semaphore.h>
-
 #ifndef PROJETCONCURRENT_DISPLAYSDL_H
 #define PROJETCONCURRENT_DISPLAYSDL_H
 
+#include <semaphore.h>
+#include <pthread.h>
 #include <vector>
+#include "Cell/Cell.h"
+#include "threads/ThreadPart.h"
 
 using std::vector;
 /**
@@ -21,7 +21,7 @@ extern bool canDisplay;
  * @param counter
  * @param terrain
  */
-void display(sem_t &counter, vector<vector<Cell *>> &terrain);
+void *display(void *arg);
 
 /**
  * Permet de ralentir le deplacement des threads si il y a affichage pour plus de lisibilité
