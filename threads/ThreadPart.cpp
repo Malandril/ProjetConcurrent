@@ -28,6 +28,11 @@ void *ThreadPart::computePath() {
     mainLoop();
 }
 
+/**
+ * Boucle principale qui permet de lancer à chaque fois moveToBestCell
+ * si il n'ya plus personne dans cette partie alors la fonction attend un reveil
+ * si toutees les autres parties sont vide alors on les reveilles et on s'arrete
+ */
 void ThreadPart::mainLoop() {
     while (true) {
         if (!metric && canDisplay) {
@@ -65,21 +70,30 @@ void ThreadPart::mainLoop() {
     }
 }
 
-
-unsigned long ThreadPart::nbPeople() {
-    return persons.size() + limitPersons.size();
-}
-
+/**
+ * Renvoie vrai si la cellule est valide
+ * @param x
+ * @param y
+ * @return
+ */
 bool ThreadPart::isValidCell(int x, int y) {
     return Threading::isValidCell(x, y) && terrain[x][y]->readValue() == 0;
 }
 
+/**
+ * Défini que cette partie possède la ligne j
+ * @param j
+ */
 void ThreadPart::writeLine(int j) {
     for (int i = pos.x; i < pos.x + size.x + 1; ++i) {
         terrain[i][j]->owner = this;
     }
 }
 
+/**
+ * Défini que cette partie possède la colonne j
+ * @param j
+ */
 void ThreadPart::writeColumn(int j) {
     for (int i = pos.y; i < pos.y + size.y + 1; ++i) {
         terrain[j][i]->owner = this;
@@ -87,6 +101,13 @@ void ThreadPart::writeColumn(int j) {
 
 }
 
+/**
+ * bouge les points de la liste donnée vers une case valide si il y en a une
+ * si cela doit faire changer de case alors on lock la partie de destination et on appelle dessus addPerson
+ * puis on déplace le point sur le terrain et on supprime le point de la liste et
+ *  on libère le verrou
+ * @param persons
+ */
 void ThreadPart::moveToBestCell(list<Point> &persons) {
     for (auto start = persons.begin(); start != persons.end();) {
         Point person = *start;
@@ -128,11 +149,19 @@ ThreadPart::~ThreadPart() {
     pthread_mutex_destroy(&partLock);
 }
 
+/**
+ * renvoie vrai si le point est dans cette partie
+ * @param point
+ * @return
+ */
 bool ThreadPart::contains(Point point) {
     return point.x >= pos.x && point.y >= pos.y && point.x <= size.x + pos.x && point.y <= size.y + pos.y;
 }
 
-
+/**
+ * ajoute une personne à la liste de personnes qui sont dans la limite et reveille ce thread si il est en attente
+ * @param point
+ */
 void ThreadPart::addPerson(Point point) {
     bool b = limitPersons.empty() && persons.empty();
     this->limitPersons.push_back(point);
@@ -142,6 +171,10 @@ void ThreadPart::addPerson(Point point) {
     }
 }
 
+/**
+ *Ajoute une personne a la bonne liste fonction utilisée a l'initialisation
+ * @param pos
+ */
 void ThreadPart::spawnPerson(Point pos) {
     if (isInLimits(pos)) {
         this->limitPersons.push_back(pos);
@@ -150,14 +183,18 @@ void ThreadPart::spawnPerson(Point pos) {
     }
 }
 
+/**
+ * reveille cette partie
+ */
 void ThreadPart::wake() {
     pthread_cond_broadcast(&cond);
 }
 
-Point ThreadPart::getPos() {
-    return pos;
-}
-
+/**
+ * renvoie vrai si le point est dans la limite
+ * @param p
+ * @return
+ */
 bool ThreadPart::isInLimits(Point p) {
     return p.x == pos.x + size.x || p.y == pos.y + size.y;
 }

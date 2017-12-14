@@ -8,6 +8,7 @@
 #include <list>
 #include <stack>
 #include <queue>
+#include <pthread.h>
 #include "PersonThread.h"
 
 using std::list;
@@ -44,15 +45,11 @@ public:
 
     virtual void mainLoop();
 
-    Point getPos();
-
     bool isInLimits(Point pos);
 
     bool contains(Point point);
 
     void addPerson(Point point);
-
-    unsigned long nbPeople();
 
     virtual ~ThreadPart();
 

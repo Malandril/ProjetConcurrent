@@ -5,7 +5,6 @@
 #ifndef PROJETCONCURRENT_MAIN_H
 #define PROJETCONCURRENT_MAIN_H
 
-#include "../Point.h"
 #include <array>
 
 #define OBSTACLE 7

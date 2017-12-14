@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <chrono>
 #include <semaphore.h>
+#include <iomanip>
 #include "Cell/Cell.h"
 #include "main.h"
 #include "Cell/LockableCell.h"
@@ -29,7 +30,7 @@ void setMetrics(array<long, REPEAT> &userTime, array<long, REPEAT> &systemTime, 
 
 #if defined(_WIN32)
 
-void setMetrics(long userTime[], long systemTime[], int i) {
+void setMetrics(array<long, REPEAT> &userTime, array<long, REPEAT> &systemTime, int i) {
     std::cerr << "Metrics not Working in windows"<<endl;
     exit(4);
 }
