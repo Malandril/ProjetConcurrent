@@ -198,3 +198,7 @@ void ThreadPart::wake() {
 bool ThreadPart::isInLimits(Point p) {
     return p.x == pos.x + size.x || p.y == pos.y + size.y;
 }
+
+Point ThreadPart::getPos() {
+    return pos;
+}

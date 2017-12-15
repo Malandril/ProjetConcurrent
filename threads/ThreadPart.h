@@ -56,6 +56,8 @@ public:
     std::string strhistory();
 
     std::string personString();
+
+    Point getPos();
 };
 
 
